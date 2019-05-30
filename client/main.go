@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	napi "np-10/rpc-test/api"
-	ngrpc "np-10/rpc-test/apigrpc"
+	napi "np-10/grpc-test/api"
+	ngrpc "np-10/grpc-test/apigrpc"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"

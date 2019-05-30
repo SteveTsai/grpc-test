@@ -6,7 +6,7 @@ package apigrpc
 import (
 	fmt "fmt"
 	math "math"
-	api "np-10/rpc-test/api"
+	api "np-10/grpc-test/api"
 
 	proto "github.com/golang/protobuf/proto"
 	empty "github.com/golang/protobuf/ptypes/empty"

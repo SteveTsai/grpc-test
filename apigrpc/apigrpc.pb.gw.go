@@ -12,7 +12,7 @@ import (
 	"io"
 	"net/http"
 
-	"np-10/rpc-test/api"
+	"np-10/grpc-test/api"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/empty"
