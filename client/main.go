@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	address = "172.26.11.111:7349"
+	address = "x.x.x.x:7349"
 )
 
 type basicAuth struct {
