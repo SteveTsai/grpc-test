@@ -7,15 +7,12 @@ import (
 	"log"
 	"time"
 
-	napi "np-10/grpc-test/api"
-	ngrpc "np-10/grpc-test/apigrpc"
-
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"
-	//ngrpc "github.com/heroiclabs/nakama/apigrpc"
-	//napi "github.com/heroiclabs/nakama/api"
-	// wrappers "np-10/rpc-test/wrappers"
-	//vgrpc "github.com/heroiclabs/nakama/vender/google.golang.org/grpc"
+
+	napi "np-10/grpc-test/api"
+	ngrpc "np-10/grpc-test/apigrpc"
 )
 
 const (
@@ -27,6 +24,7 @@ type basicAuth struct {
 	password string
 }
 
+// to setup http header: --user 'defaultkey:'
 func (b basicAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	auth := b.username + ":" + b.password
 	enc := base64.StdEncoding.EncodeToString([]byte(auth))
@@ -36,6 +34,21 @@ func (b basicAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[st
 }
 
 func (basicAuth) RequireTransportSecurity() bool {
+	return false
+}
+
+type bearerAuth struct {
+	sessionToken string
+}
+
+// to setup http header:  -H 'Authorization: Bearer <session token>'
+func (b bearerAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
+	return map[string]string{
+		"authorization": "Bearer " + b.sessionToken,
+	}, nil
+}
+
+func (bearerAuth) RequireTransportSecurity() bool {
 	return false
 }
 
@@ -77,10 +90,25 @@ func main() {
 	}
 	log.Println(session)
 
+	conn2, err2 := grpc.Dial(address, grpc.WithInsecure(),
+		//grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(insecure.CertPool, "")),
+		grpc.WithPerRPCCredentials(bearerAuth{session.GetToken()}))
+	if err2 != nil {
+		log.Fatalf("did not connect: %v", err2)
+	}
+	defer conn2.Close()
+	c2 := ngrpc.NewNakamaClient(conn2)
+
 	// try add friend
 	pAddFriends := &napi.AddFriendsRequest{Ids: nil, Usernames: []string{"ab2"}}
-	_, error = c.AddFriends(ctx, pAddFriends)
+	_, error = c2.AddFriends(ctx, pAddFriends)
 	if error != nil {
-		log.Fatalf("could not AddFriends: %v", error)
+		log.Printf("could not AddFriends: %v\n", error)
 	}
+
+	friendList, errLF := c2.ListFriends(ctx, &empty.Empty{})
+	if errLF != nil {
+		log.Fatalf("could not ListFriends: %v", errLF)
+	}
+	log.Println(friendList)
 }
